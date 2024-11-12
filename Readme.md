@@ -479,7 +479,8 @@ export const Category = mongoose.model("Category",categorySchema) /* This line c
 [This website will create all the things that should go inside (.gitignore) file and it is professional approach](https://mrkandreev.name/snippets/gitignore-generator/#Node) Here we simply use it for "Node" but you can use for any other framework or library or language.
 
 This document provides a structured overview of the backend project, explaining the purpose of each folder and file in the application.
-```Javasript
+
+```javascript
 ├── node_modules/
 │ └── Contains all the installed dependencies and packages used in the project. This folder is generated automatically by npm based on package.json and should not be modified directly.
 │ ├── public/
@@ -512,8 +513,11 @@ This document provides a structured overview of the backend project, explaining 
 │ └── An auto-generated file that locks the exact version of dependencies in the node_modules folder. This file ensures that the same dependency versions are installed every time the project is set up, improving consistency and stability.
 │ ├── package.json
 │ └── The primary configuration file for the Node.js project, listing all dependencies, scripts, metadata, and settings. It acts as the manifest for the project and is required for installing dependencies via npm.
+
 ```
+
 If you're unable to understand the structuring of the file , refer this , this is in clear way
+
 ```javascript
 MongoDB_Connection_to_Backend/
 │
