@@ -473,3 +473,7 @@ export const Category = mongoose.model("Category",categorySchema) /* This line c
 [Model link of Mogoose for data modeling](https://stackblitz.com/edit/stackblitz-starters-lwjsoh?description=&file=models%2Ftodos%2Fsub_todo.models.js,models%2FEcommerce%2Fcategory.models.js,models%2Ftodos%2Fuser.models.js&title=Express%20Starter)
 
 # <strong style="color:cyan; font-family:serif;" >From Here We are moving towards Professional and Production grade backend that used in big companies</strong>
+
+[Link of model for project that we will in this professional backend](https://app.eraser.io/workspace/YtPqZ1VogxGy1jzIDkzj)
+
+[This website will create all the things that should go inside (.gitignore) file and it is professional approach](https://mrkandreev.name/snippets/gitignore-generator/#Node) Here we simply use it for "Node" but you can use for any other framework or library or language.
