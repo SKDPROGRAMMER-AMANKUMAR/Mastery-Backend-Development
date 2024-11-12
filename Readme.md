@@ -478,11 +478,8 @@ export const Category = mongoose.model("Category",categorySchema) /* This line c
 
 [This website will create all the things that should go inside (.gitignore) file and it is professional approach](https://mrkandreev.name/snippets/gitignore-generator/#Node) Here we simply use it for "Node" but you can use for any other framework or library or language.
 
-## File Structure for production grade web apps
-
->>This document provides a structured overview of the backend project, explaining the purpose of each folder and file in the application.
-
-```javascript
+This document provides a structured overview of the backend project, explaining the purpose of each folder and file in the application.
+```Javasript
 ├── node_modules/
 │ └── Contains all the installed dependencies and packages used in the project. This folder is generated automatically by npm based on package.json and should not be modified directly.
 │ ├── public/
@@ -515,4 +512,33 @@ export const Category = mongoose.model("Category",categorySchema) /* This line c
 │ └── An auto-generated file that locks the exact version of dependencies in the node_modules folder. This file ensures that the same dependency versions are installed every time the project is set up, improving consistency and stability.
 │ ├── package.json
 │ └── The primary configuration file for the Node.js project, listing all dependencies, scripts, metadata, and settings. It acts as the manifest for the project and is required for installing dependencies via npm.
+```
+If you're unable to understand the structuring of the file , refer this , this is in clear way
+```javascript
+MongoDB_Connection_to_Backend/
+│
+├── node_modules/            # Dependencies installed via npm
+│
+├── public/                  # Static files served directly
+│   └── temp/
+│       └── .gitkeep         # Keeps the folder in version control
+│
+├── src/                     # Core backend logic
+│   ├── controllers/         # Request handlers (business logic)
+│   ├── db/                  # Database connection setup
+│   │   └── Database.js      # MongoDB connection logic
+│   ├── middlewares/         # Middleware for authentication/error handling
+│   ├── models/              # Mongoose models (Schemas)
+│   ├── routes/              # API route definitions
+│   ├── utils/               # Helper functions (utilities)
+│   ├── app.js               # Initializes express, middleware, and routes
+│   ├── constants.js         # Global constants (status codes, config)
+│   └── index.js             # Entry point, connects DB and starts server
+│
+├── .env                     # Environment variables (e.g., DB URI, API keys)
+├── .gitignore               # Files/folders to ignore in version control
+├── package-lock.json        # Exact dependency tree (auto-generated)
+├── package.json             # Project configuration and dependencies
+└── Readme.md                # Documentation for the project
+
 ```
