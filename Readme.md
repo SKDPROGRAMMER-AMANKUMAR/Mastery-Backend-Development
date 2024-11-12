@@ -680,3 +680,154 @@ connectDB()
 
 ```
 ##### <strong style="color:Red">Remember one thing , When you change something in "```.env```" file , you have to restart the application by yourself , in this case the "```nodemon```" will not help you</strong> 
+
+## <strong style="color:cyan;">Starting the "```SERVER```" BY using "```app.js```" file</strong>
+Write this code in ```app.js``` file
+```javascript
+import express from 'express';
+const app = express();
+export default { app }
+```
+and then write this code in ```index.js``` file 
+```javascript
+import dotenv from "dotenv"
+import connectDB from "./db/Database.js";
+
+dotenv.config({
+  path:"./env"
+})
+
+connectDB() //cause inside database.js file we use async-await , so after completion of it , it'll return a promise
+.then(()=>{
+  //  app.on("error",(error)=>{/* Global error handler: logs and re-throws any uncaught application errors.*/
+  //   console.log("ERRR:",error);
+  //   throw error;
+  // }) 
+  app.listen(process.env.PORT || 8000, ()=>{
+    console.log(`Server is running at ${process.env.PORT}`);
+  }) //Till now we only able to connect database to backend , and till now  we didn't listen and never start the server , this will do that. 
+})
+.catch((err)=>{
+  console.log("MONGO db connection failed !!!",err);
+})
+```
+
+## The Below is the code for accepting the ```data``` from multiple resources like (json,params{url} etc.)
+
+write this code in ```app.js``` file 
+```javascript
+import express from 'express';
+import cors from "cors"
+import cookieParser from 'cookie-parser';
+
+const app = express();
+app.use(cors({
+    origin:process.env.CORS_ORIGIN,
+    credentials: true
+})) /*The "app.use()" will only applied when there is any middleware or configuration*/
+
+app.use(express.json({limit: "16kb"})) /* Enable JSON parsing for incoming requests, with a maximum payload size of 16kb.*/
+
+app.use(express.urlencoded({
+    extended: true,
+    limit: "16kb" /* Enable URL-encoded parsing for incoming requests, with a maximum payload size of 16kb.*/
+}))
+
+app.use(express.static("public"))// Serve files from the "public" folder as static assets (e.g. images, CSS, JavaScript).
+app.use(cookieParser(cookieParser()))/*Enable cookie parsing for incoming requests, allowing access to cookies in the request object.
+This middleware extracts cookies from the request headers and populates the req.cookies object.*/
+
+export default  app 
+```
+write this code in ```.env``` file 
+```javascript
+PORT=8000
+MONGODB_URI=mongodb+srv://masterybackend143:MasteryBackend143@cluster0.cvbkt.mongodb.net
+# MasteryBackend143
+CORS_ORIGIN=* //this will allow to get data from backend from any of the request , which is not good , but for now it is fine 
+```
+
+#### <strong style="color:red;">This is for middleware , the link that available below contains a diagram that show  how actually ```Middlewares``` work </strong>
+[Working of middlewares](https://excalidraw.com/#json=Hwn2oD7pCo_NZYK9cLm2V,a_vjPx4-r1FJu3idK6z7UA)
+
+### The code below  is the code inside ```utils``` directory
+Write the code below 👇👇 in ```asyncHandler.js``` file
+```javascript
+/*Create a higher-order function (asyncHandler) that wraps a request handler with error handling.*/
+const asyncHandler = (requestHandler) => {
+    // Return a new function that takes req, res, and next as arguments.
+    (req,res,next) => {
+        // Wrap the request handler in a Promise to catch any errors that occur.
+        Promise.resolve(requestHandler(req,res,next))
+          // Catch any errors that occur and pass them to the next error handler.
+        .catch((err)=>next(err))
+    }
+}
+
+export {asyncHandler} //This file (src/utils/asyncHandler.js) is a utility file that provides a function (asyncHandler) for handling asynchronous errors in an Express.js application.
+
+
+            //  ---- OR ----
+
+// // Create a higher-order function (asyncHandler) that wraps an async function (fn) with error handling.
+// const asyncHandler = (fn) => 
+//     // Return a new async function that takes req, res, and next as arguments.
+//     async (req,res,next) => {
+//     try{
+//          // Call the original async function (fn) with req, res, and next as arguments.
+//         await fn(req,res,next);
+//     } catch(error){
+//          // If an error occurs, catch it and send a JSON error response.
+//         res.status(err.code || 500).json({
+//              // Set success to false to indicate an error occurred.
+//             success: false,
+//              // Include the error message in the response.
+//             message:err.message
+//         })
+//     }
+// }
+```
+Write the code below 👇👇 in ```ApiError.js``` file 
+```javascript
+class ApiError extends Error {
+    // Constructor function that initializes the error object with the given parameters.
+    constructor(statusCode,message="Something went wrong",errors=[],stack=""){
+        super(message)
+        // Set the HTTP status code for the error.
+        this.statusCode = statusCode
+        // Initialize the data property to null
+        this.data = null
+         // Set the error message.
+        this.message = message
+         // Indicate that the operation was not successful.
+        this.success = false;
+        // Store any additional error details in the errors array.
+        this.errors = errors
+
+         // If a stack trace is provided, set it as the error's stack property.
+        if(stack) {
+            this.stack = stack
+        }else{
+            // Otherwise, capture the current stack trace using the Error.captureStackTrace method.
+            Error.captureStackTrace(this,this.constructor)
+        }
+        /*the stack property is initialized with the current call stack using the Error.captureStackTrace method. This allows the error object to store the call stack information, which can be useful for logging, debugging, or displaying error messages.*/
+
+    }
+}
+
+export {ApiError} //This file defines a custom error class (ApiError) for handling and representing errors in an API, providing a standardized way of error handling.
+```
+Write the below 👇👇 code  in ```ApiResponse.js``` file
+```javascript
+class ApiResponse {
+    constructor(statusCode,data,message="Success"){
+        this.statusCode = statusCode // the HTTP status code of the response
+        this.data = data // the response data (e.g., JSON payload)
+        this.message = message //a human-readable message describing the response
+        this.success = statusCode < 400 //a boolean indicating whether the response was successful
+    }
+}
+
+export {ApiResponse} //This file (ApiResponse.js) defines a class for creating standardized API response objects, making it easy to return consistent responses.
+```
