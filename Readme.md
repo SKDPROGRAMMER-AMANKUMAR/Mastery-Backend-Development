@@ -546,3 +546,137 @@ MongoDB_Connection_to_Backend/
 └── Readme.md                # Documentation for the project
 
 ```
+
+Below are the code for prettier(.prettierrc)  👇👇 This basically standardized the formatting of the code , So that no conflict get happen while pushing it to the github.
+```javascript
+{
+    "singleQuote": false,
+    "bracketSpacing": true,
+    "tabWidth": 2,
+    "trailingComma": "es5",
+    "semi": true
+}
+```
+Below are the code for prettier(.prettierignore)
+```javascript
+/.vscode
+/node_modules
+./dist
+*.env
+.env
+.env*
+```
+
+## <strong style="color:hotpink">Connecting Database with backend</strong> 
+
+ >>Write the below code in ```.env``` file  , The ```URI``` return below is come after doing setting in ```MongoDB Atlas``` and making a database over there
+```javascript
+PORT=8000
+MONGODB_URI=mongodb+srv://masterybackend143:your-password@cluster0.cvbkt.mongodb.net
+```
+>> And then write the below code in ```constants.js``` file
+
+```javascript
+export const DB_NAME = "videotube"
+```
+
+### There are mainly two ways to connect database with backend 
+#### 1.Write the function that'll connect the database with backend backend in "```index.js```", which is the entry point  , means as the file get loaded then immediately the function get runs. 
+#### 2.Make the different directory as "db" or you can name this directory as you want and create a file in this directory whose name will be  "```database.js```" in "```db```"  directory  and then simpley ```export``` it , and by using this second method The code will be more modular and reusable . 
+
+<strong style="color:red; font-family:Tahoma;">Remember two things always while writing the backend and when you talk to database:- 
+1.use ```try-catch``` block and ```async-await```  cause maybe the error can occur or it takes time  while getting and sending data to database.
+2.```Database``` is in another ```Continent```. 
+</strong> 
+
+##### <strong style="color:yellow">Approach 1</strong>: Write this code in your "```index.js```" file to Connect the database with backend 
+```javascript
+import mongoose from "mongoose";
+import { DB_NAME } from "./constants.js";
+import express from "express";
+const app = express();
+(async () => {
+  try {
+    await mongoose.connect(`${process.env.MONGODB_URI}/${DB_NAME}`);
+    app.on("error", (error) => {// Catch and log any errors that occur in the app, then re-throw the error.
+      console.log("ERROR:", error);
+      throw error;
+    });/*app.on("error", ...) is a global error handler that catches uncaught exceptions that occur within the Express.js application. This means that if an error occurs in a route handler or middleware, and it's not caught by a try-catch block, this global error handler will catch it.*/
+
+    app.listen(process.env.PORT, () => {
+      console.log(`App is listening on port ${process.env.PORT}`);
+    });
+  } catch (error) {
+    console.error("ERROR:", error);
+    throw err;
+  }/*catch(error), on the other hand, is a block that catches errors that occur within a specific try block. This means that if you have a try-catch block in a route handler or middleware, the error will be caught by that block, and the global error handler won't be triggered.*/
+})();
+
+```
+
+#### <strong style="color:yellow">Approach 2</strong>:Write this code in your "```Database.js```" file which present in "```db```" directory and import it into "```index.js```" file , cause it is the entry point of this project.
+
+```javascript
+import mongoose from "mongoose";
+import {DB_NAME} from "../constants.js"
+
+const connectDB = async () => {
+    try {
+     const connectionInstance = await mongoose.connect(`${process.env.MONGODB_URI}/${DB_NAME}`)
+      console.log(connectionInstance); //This is for information about what "connectionInstance" store
+     console.log(`\n MongoDB connected !! DB HOST: ${connectionInstance.connection.host}`); /*Log a message to the console indicating that a connection to a MongoDB database has been established.
+     The message includes the hostname of the MongoDB server.*/
+     
+    } catch (error) {
+        console.log("MONGODB connection FAILED",error)
+        process.exit(1)
+    }
+}
+export default connectDB
+
+// Here's how we import this in "index.js" file 
+import dotenv from "dotenv"
+import connectDB from "./db/Database.js";
+
+dotenv.config({
+  path:"./env"
+})
+
+connectDB()
+```
+
+## <strong style="color:Gold"> This is the code  for now of "```package.json```" file to see how many "```dependencies```" we install till now </strong>
+
+```javascript
+{
+  "name": "mastery-backend-development",
+  "version": "1.0.0",
+  "description": "Mastery Backend Development with chai aur code || Hitesh Choudhary",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon -r dotenv/config --experimental-json-modules src/index.js"
+  },/*/ This is a configuration for the "scripts" section of a package.json file.
+// The "dev" script is used to run the application in development mode.
+// It uses the "nodemon" tool to automatically restart the application whenever a file changes.
+// The "-r dotenv/config" flag tells nodemon to automatically load environment variables from a .env file.
+// The "--experimental-json-modules" flag enables support for ECMAScript modules in Node.js.
+// The "src/index.js" argument specifies the entry point of the application.*/
+  "keywords": [
+    "JavaScript"
+  ],
+  "author": "Aman Kumar",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.1.7",
+    "prettier": "^3.3.3"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "mongoose": "^8.8.1"
+  }
+}
+
+```
+##### <strong style="color:Red">Remember one thing , When you change something in "```.env```" file , you have to restart the application by yourself , in this case the "```nodemon```" will not help you</strong> 
