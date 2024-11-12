@@ -477,3 +477,42 @@ export const Category = mongoose.model("Category",categorySchema) /* This line c
 [Link of model for project that we will in this professional backend](https://app.eraser.io/workspace/YtPqZ1VogxGy1jzIDkzj)
 
 [This website will create all the things that should go inside (.gitignore) file and it is professional approach](https://mrkandreev.name/snippets/gitignore-generator/#Node) Here we simply use it for "Node" but you can use for any other framework or library or language.
+
+## File Structure for production grade web apps
+
+>>This document provides a structured overview of the backend project, explaining the purpose of each folder and file in the application.
+
+```javascript
+├── node_modules/
+│ └── Contains all the installed dependencies and packages used in the project. This folder is generated automatically by npm based on package.json and should not be modified directly.
+│ ├── public/
+│ └── Static files served directly to clients without requiring backend processing. │ └── temp/
+│ └── A subdirectory within public intended for temporarily storing files, such as uploads or files in processing. │ └── .gitkeep
+│ └── An empty file used to retain the temp directory in version control (Git), since Git does not track empty directories by default. │ ├── src/
+│ └── The main source folder that holds the core backend logic and all the code for the application’s functionality.
+│ ├── controllers/
+│ └── Contains controller functions for handling incoming requests and responses. Each controller typically contains business logic for specific routes and organizes how data flows between the client, database, and application. │ ├── db/
+│ └── Manages the database connection setup. This directory holds files for configuring and initializing a connection to MongoDB.
+│ └── Database.js
+│ └── Contains the logic for connecting to MongoDB, including connection URI, options, and error handling. Responsible for establishing a connection between the application and MongoDB. │ ├── middlewares/
+│ └── Holds middleware functions that intercept requests to add extra processing, such as authentication, logging, or error handling, before they reach the controller. Middleware functions operate at different stages of the request lifecycle.
+│ ├── models/
+│ └── Contains Mongoose models that define the data structure and schema for each collection in MongoDB. Models specify data types, validation, and relationships, enabling MongoDB and Node.js to communicate seamlessly.
+│ ├── routes/
+│ └── Defines API endpoints for different resources and maps these endpoints to their respective controller functions. Routes act as the interface between the client requests and server responses.
+│ ├── utils/
+│ └── Stores helper functions and utility modules used across the application. These are reusable pieces of code that provide common functionality (e.g., formatting, data transformation) to avoid redundancy.
+│ ├── app.js
+│ └── Initializes the Express application, applies global middleware, and sets up API routes. This file serves as the central configuration for the application’s request handling and middleware setup.
+│ ├── constants.js
+│ └── Stores global constants used throughout the application, such as HTTP status codes, configuration settings, or reusable static values, which helps maintain consistency and readability.
+│ └── index.js
+│ └── The main entry point for the backend server. This file connects to the database, starts the Express server, and listens for incoming requests. It’s responsible for bootstrapping the application.
+│ ├── .env
+│ └── Stores sensitive environment variables like database URI, API keys, and configuration values. It allows for secure configuration by keeping sensitive data out of the source code. │ ├── .gitignore
+│ └── Specifies files and folders that should be ignored by Git for version control. This file helps prevent sensitive information or unnecessary files (like node_modules) from being committed to the repository.
+│ ├── package-lock.json
+│ └── An auto-generated file that locks the exact version of dependencies in the node_modules folder. This file ensures that the same dependency versions are installed every time the project is set up, improving consistency and stability.
+│ ├── package.json
+│ └── The primary configuration file for the Node.js project, listing all dependencies, scripts, metadata, and settings. It acts as the manifest for the project and is required for installing dependencies via npm.
+```
