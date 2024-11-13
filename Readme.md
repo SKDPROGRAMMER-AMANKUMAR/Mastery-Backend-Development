@@ -831,3 +831,211 @@ class ApiResponse {
 
 export {ApiResponse} //This file (ApiResponse.js) defines a class for creating standardized API response objects, making it easy to return consistent responses.
 ```
+
+
+## <strong style="color:yellow"> User and video model with mongoose ```hooks``` and ```JWT(access_token,refresh_token)``` etc.  to  hash and ```encrypt``` the password using ```bcrypt``` and many more... </strong>
+Write this below code in ```user.model.js``` file which present inside ```models``` directory/folder
+```javascript
+import mongoose, { Schema } from "mongoose";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
+
+const userSchema = new Schema(
+  {
+    username: {
+      type: String,
+      required: true,
+      lowercase: true,
+      unique: true,
+      trim: true,
+      index: true /*// Imagine you have a collection of books in a library.
+        // You want to find all the books written by a specific author.
+        // Without an index, the database would have to look through every book in the library to find the ones written by that author.
+        // But if you create an index on the author field, the database can quickly look up the author's name and find all the books written by them.*/,
+    },
+    email: {
+      type: String,
+      required: true,
+      lowercase: true,
+      unique: true,
+      trim: true,
+    },
+    fullName: {
+      type: String,
+      required: true,
+      trim: true,
+      index: true,
+    },
+    avatar: {
+      type: String, //cloudinary url
+      required: true,
+    },
+    coverImage: {
+      type: String,
+    },
+    watchHistory: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Video",
+      },
+    ],
+    password: {
+      type: String,
+      required: [true, "Password is required"],
+    },
+    refreshToken: {
+      type: String,
+    },
+  },
+  { timestamps: true }
+);
+
+/*// Define a pre-save hook for the userSchema.
+// This hook will run before the user document is saved to the database.*/
+userSchema.pre("save", async function (next) {
+  /* // Check if the password field has been modified.
+  // This is done to prevent unnecessary hashing of the password.
+  // If the password field has not been modified, the hook will return and the save process will continue.*/
+  if (!this.isModified("password")) return next(); 
+  /*// If the password field has been modified, hash the password using bcrypt.
+  // Bcrypt is a popular password hashing library that provides a secure way to store passwords.
+  // The 10 in the hash function specifies the number of rounds to use for the hashing process.
+  // A higher number of rounds makes the hashing process more secure, but also slower.*/
+  this.password = await bcrypt.hash(this.password,10)
+  /* // Call the next middleware function to continue the save process.
+  // This is done to ensure that the save process continues after the password has been hashed.*/
+  next();
+});
+
+/*// Define a method on the userSchema to compare a provided password with the stored password.
+// This method uses bcrypt to securely compare the passwords.*/
+userSchema.methods.isPasswordCorrect = async function(password){
+  /*// Use bcrypt.compare to compare the provided password with the stored password.
+  // bcrypt.compare returns a boolean indicating whether the passwords match.*/
+ return  await  bcrypt.compare(password, this.password)
+}
+
+/*// Define a method on the userSchema to generate an access token.
+// This method uses the jwt library to create a JSON Web Token (JWT) that contains user data.
+// The JWT is used for authentication and authorization purposes, allowing the user to access protected routes and resources.*/
+userSchema.methods.generateAccessToken = function(){
+  /* // Use jwt.sign to create a new JWT.
+  // The first argument is the payload, which contains the user data.
+  // The payload is an object that includes the user's ID, email, username, and full name.*/
+   return jwt.sign(
+    {
+      /*// Include the user's ID in the payload.
+      // The ID is a unique identifier for the user, and is used to authenticate and authorize the user.*/
+      _id:this._id,
+      /* // Include the user's email in the payload.
+      // The email is used to identify the user and to send notifications and updates.*/
+      email:this.email,
+      /*// Include the user's username in the payload.
+      // The username is used to identify the user and to authenticate and authorize the user.*/
+      username:this.username,
+      /*// Include the user's full name in the payload.
+      // The full name is used to display the user's name in the application.*/
+      fullName:this.fullName,
+    },
+    /* // Use the ACCESS_TOKEN_SECRET environment variable as the secret key for signing the JWT.
+    // The secret key is used to encrypt and decrypt the JWT, and to prevent tampering and forgery.*/
+    process.env.ACCESS_TOKEN_SECRET,
+    /* // Specify the expiration time for the JWT.
+    // The expiration time is used to determine how long the JWT is valid, and to prevent the JWT from being used after it has expired.*/
+    {
+      /* // Use the ACCESS_TOKEN_EXPIRY environment variable to set the expiration time.
+      // The expiration time is typically set to a short period of time, such as 15 minutes or 1 hour.*/
+      expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
+    }
+  )
+}
+
+/*// Define a method on the userSchema to generate a refresh token.
+// This method uses the jwt library to create a JSON Web Token (JWT) that contains the user's ID.
+// The refresh token is used to obtain a new access token when the current access token expires.*/
+userSchema.methods.generateRefreshToken = function(){
+  /*// Use jwt.sign to create a new JWT.
+  // The first argument is the payload, which contains the user's ID.*/
+  return jwt.sign(
+    {
+      /*// Include the user's ID in the payload.
+      // The ID is a unique identifier for the user, and is used to authenticate and authorize the user.*/
+      _id:this._id,
+    },
+    /*// Use the REFRESH_TOKEN_SECRET environment variable as the secret key for signing the JWT.
+    // The secret key is used to encrypt and decrypt the JWT, and to prevent tampering and forgery.*/
+    process.env.REFRESH_TOKEN_SECRET,
+    /*// Specify the expiration time for the JWT.
+    // The expiration time is used to determine how long the JWT is valid, and to prevent the JWT from being used after it has expired.*/
+    {
+      /* // Use the REFRESH_TOKEN_EXPIRY environment variable to set the expiration time.
+      // The expiration time is typically set to a longer period of time than the access token, such as 1 day or 1 week.*/
+      expiresIn: process.env.REFRESH_TOKEN_EXPIRY,
+    }
+  )
+}
+export const User = mongoose.model("User", userSchema);
+```
+Write this below code in ```video.model.js``` file which present inside ```models``` directory
+```javascript
+import mongoose ,{Schema} from "mongoose"
+import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2";
+
+const videoSchema = new Schema(
+    {
+        videoFile:{
+            type:String, //cloudinary url
+            required:[true, 'Vieo is Required']
+        },
+        thumbnail:{ //cloudinary url
+          type:String,
+          required:true
+        },
+        title:{
+          type:String,
+          required:true
+        },
+        description:{
+          type:String,
+          required:true
+        },
+        duration:{ 
+          type:Number,
+          required:true
+        },
+        views:{ 
+          type:Number,
+          default:0
+        },
+        isPublished:{ 
+          type:Boolean,
+          default:true
+        },
+        owner:{
+            type:Schema.Types.ObjectId,
+            ref:"User"
+        }
+    },
+    {
+        timestamps:true,
+    }
+)
+
+videoSchema.plugin(mongooseAggregatePaginate)/*// Imagine you have a collection of 100 videos in your database.
+// You want to display only 10 videos at a time on the webpage.
+// The mongooseAggregatePaginate plugin helps you achieve this by allowing you to define a pagination strategy.
+// You can then use this strategy to retrieve the first 10 videos, then the next 10, and so on.*/
+
+export const Video = mongoose.model("Video", videoSchema)
+```
+Write this below code in your ```.env``` file 
+```javascript
+PORT=8000
+MONGODB_URI=mongodb+srv://masterybackend143:MasteryBackend143@cluster0.cvbkt.mongodb.net
+# MasteryBackend143
+CORS_ORIGIN=* #this will allow to get data from backend from any of the request , which is not good , but for now it is fine 
+ACCESS_TOKEN_SECRET=7b1fd5e79f3760f67497d6540e1ff04260c00d6fb941068806534e8f17bb91bb
+ACCESS_TOKEN_EXPIRY=1d
+REFRESH_TOKEN_SECRET=64312c7631d36392ea0a6bc9da1381654f900b6db17612066955c9057f981472
+REFRESH_TOKEN_EXPIRY=10d
+```
