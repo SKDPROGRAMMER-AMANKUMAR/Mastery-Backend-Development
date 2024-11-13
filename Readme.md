@@ -1038,4 +1038,6 @@ ACCESS_TOKEN_SECRET=7b1fd5e79f3760f67497d6540e1ff04260c00d6fb941068806534e8f17bb
 ACCESS_TOKEN_EXPIRY=1d
 REFRESH_TOKEN_SECRET=64312c7631d36392ea0a6bc9da1381654f900b6db17612066955c9057f981472
 REFRESH_TOKEN_EXPIRY=10d
+
 ```
+[From this website we generate this long string access and refrest token secret sha256](https://emn178.github.io/online-tools/sha256.html) 
