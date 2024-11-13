@@ -1041,3 +1041,116 @@ REFRESH_TOKEN_EXPIRY=10d
 
 ```
 [From this website we generate this long string access and refrest token secret sha256](https://emn178.github.io/online-tools/sha256.html) 
+
+## <strong style="color:Purple">How to upload file in backend | ```Multer``` discussion about ```Cloudinary``` and making our first ```Middleware``` </strong>
+Write this code below in ```cloudinary.js``` file which present inside ```utils``` directory
+```javascript
+import { v2 as cloudinary } from "cloudinary";
+import fs from "fs";/*// Import the 'fs' module.
+// This module provides an API for interacting with the file system.
+// It allows you to perform various file system operations, such as:
+// - Reading files: reading the contents of a file
+// - Writing files: writing data to a file
+// - Deleting files: deleting a file from the file system
+// - Creating directories: creating a new directory
+// - Deleting directories: deleting a directory and its contents
+// - Checking file existence: checking if a file or directory exists
+// - Getting file information: getting information about a file or directory, such as its size, modification time, and permissions*/
+
+
+
+/*// Configure the Cloudinary library with the necessary credentials.
+// This code sets the Cloudinary cloud name, API key, and API secret.*/
+cloudinary.config({
+    /*// Set the Cloudinary cloud name.
+    // The cloud name is a unique identifier for your Cloudinary account.*/
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    /*// Set the Cloudinary API key.
+    // The API key is used to authenticate and authorize requests to the Cloudinary API.*/
+    api_key: process.env.CLOUDINARY_API_KEY,
+    /* // Set the Cloudinary API secret.
+    // The API secret is used to sign requests to the Cloudinary API, and to prevent tampering and forgery.*/
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+/*// Define an asynchronous function to upload a file to Cloudinary.
+// This function takes a local file path as a parameter and returns the result of the upload operation.*/
+const uploadOnCloudinary = async (localFilePath) => {
+    try {
+        /* // Check if the local file path is provided.
+        // If no local file path is provided, return null.*/
+        if (!localFilePath) return null;
+        /*// Upload the file to Cloudinary using the cloudinary.uploader.upload method.
+        // The first argument is the local file path.
+        // The second argument is an options object that specifies the resource type.*/
+        //upload the file on cloudinary
+        const uploadResult = await cloudinary.uploader
+            .upload(localFilePath, {
+                resource_type: "auto"
+            })
+        //File has been uploaded successfully
+        console.log("File is uploaded on cloudinary",uploadResult);
+        return uploadResult
+    } catch (error) {
+        /*  // If an error occurs during the upload operation, remove the locally saved temporary file.*/
+       fs.unlinkSync(localFilePath) // remove the locally saved temporary file as the upload operation got failed 
+       return null;
+    }
+}
+
+export {uploadOnCloudinary}
+```
+Write the below code inside ```multer.middleware.js``` file which is present in ```middleware``` directory
+```javascript
+import multer from "multer";
+
+/*// Define a constant variable called storage.
+// This variable is used to configure the storage settings for the multer library.*/
+const storage = multer.diskStorage({
+    /* // Define the destination function.
+    // This function is called by multer to determine the directory where the uploaded file should be stored. */
+    destination: function (req, file, cb) {
+      cb(null, "public/temp")
+    },
+    /* // Define the filename function.
+    // This function is called by multer to determine the name of the uploaded file.*/
+    filename: function (req, file, cb) {
+    //   const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+    /*// Call the callback function with the original filename of the uploaded file.
+      // In this case, the original filename is used as the filename.*/
+      cb(null, file.originalname)
+    //   cb(null, file.fieldname + '-' + uniqueSuffix)
+    }
+  })
+  
+  /*// Define a constant variable called upload.
+// This variable is used to configure the multer middleware.*/
+  export const upload = multer({ //storage: storage
+    /* // Use the storage variable defined earlier.
+    // This sets the storage settings for the multer middleware.*/
+    storage,//ES6 features
+   }
+)
+
+// -------------------------------------------------------------------------------------
+    --- The below code is for additional work which we don't need in this case but we can use these for other things---
+
+/*// Generate a unique suffix for a filename.
+// This suffix is a combination of the current timestamp and a random number.*/
+const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+/*// Breakdown of the unique suffix:
+// - Date.now(): Get the current timestamp in milliseconds.
+// - Math.random() * 1E9: Generate a random number between 0 and 1 billion.
+// - Math.round(): Round the random number to the nearest integer.
+// - '-' : Concatenate the timestamp and random number with a hyphen in between.*/
+
+
+/*// Generate a unique filename for an uploaded file.
+// This filename is a combination of the original filename and a unique suffix.*/
+cb(null, file.fieldname + '-' + uniqueSuffix)
+/*// Breakdown of the filename generation:
+// - file.fieldname: Get the original filename of the uploaded file.
+// - uniqueSuffix: Generate a unique suffix for the filename.
+// - '+' : Concatenate the original filename and unique suffix with a hyphen in between.*/
+```
+[This is the link of ```Multer``` docs](https://github.com/expressjs/multer?tab=readme-ov-file)
