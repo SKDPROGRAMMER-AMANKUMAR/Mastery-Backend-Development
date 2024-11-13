@@ -756,7 +756,7 @@ Write the code below 👇👇 in ```asyncHandler.js``` file
 /*Create a higher-order function (asyncHandler) that wraps a request handler with error handling.*/
 const asyncHandler = (requestHandler) => {
     // Return a new function that takes req, res, and next as arguments.
-    (req,res,next) => {
+   return  (req,res,next) => {
         // Wrap the request handler in a Promise to catch any errors that occur.
         Promise.resolve(requestHandler(req,res,next))
           // Catch any errors that occur and pass them to the next error handler.
@@ -1154,3 +1154,78 @@ cb(null, file.fieldname + '-' + uniqueSuffix)
 // - '+' : Concatenate the original filename and unique suffix with a hyphen in between.*/
 ```
 [This is the link of ```Multer``` docs](https://github.com/expressjs/multer?tab=readme-ov-file)
+
+## <strong style="color:Brown">Complete guide for ```router``` and ```controller``` , and also writing our first ```controller``` and ```route``` adding route to the ```app.js``` file </strong>
+Write the below code in ```user.controller.js``` file which present in ```controllers``` directory
+```javascript
+import {asyncHandler} from "../utils/asyncHandler.js"/*// Import the asyncHandler function from the utils directory.
+// The asyncHandler function is a higher-order function that wraps an asynchronous function and catches any errors that occur.*/
+
+/*// Define a new function called registerUser that registers a new user.
+// The registerUser function is wrapped in the asyncHandler function to catch any errors that occur.*/
+const registerUser = asyncHandler( 
+    // Define an asynchronous function that takes a request (req) and response (res) object as parameters.
+    async(req,res)=> {
+        // Set the HTTP status code of the response to 200 (OK).
+    res.status(200).json({
+        // Send a JSON response with a message indicating that the operation was successful.
+        message:"OK"
+    })
+})
+
+export { registerUser }
+```
+Write the below code in ```user.routes.js``` file which present in ```routes``` directory
+```javascript
+import { Router } from "express";
+import { registerUser } from "../controllers/user.controller.js"
+
+/*// Create a new instance of the Router class.
+// The Router class is used to create a new router that can be used to handle HTTP requests.*/
+const router = Router();
+
+/*// Define a new route for handling POST requests to the "/register" endpoint.
+// The registerUser function is called when a POST request is made to this endpoint.*/
+router.route("/register").post(registerUser)
+// router.route("/login").post(login) --> this for demo purpose yet . 
+export default router
+```
+Write the below code in ```app.js``` file  , Mainly from ```//routes import ```
+```javascript
+import express from 'express';
+import cors from "cors"
+import cookieParser from 'cookie-parser';
+
+const app = express();
+
+app.use(cors({
+    origin:process.env.CORS_ORIGIN,
+    credentials: true
+}))
+app.use(express.json({limit: "16kb"})) 
+app.use(express.urlencoded({
+    extended: true,
+    limit: "16kb" 
+}))
+app.use(express.static("public"))
+app.use(cookieParser(cookieParser()))
+
+//routes import 
+
+import userRouter from "./routes/user.routes.js"
+
+//routes declarations
+/*// Mount the userRouter to the "/api/v1/users" endpoint.
+// This means that any routes defined in the userRouter will be prefixed with "/api/v1/users".*/
+app.use("/api/v1/users", userRouter)
+// Example URLs for accessing the user routes:
+// http://localhost:8000/api/v1/users/register
+// http://localhost:8000/api/v1/users/login
+export default  app 
+```
+#### <strong style="color:red">The ```cycle``` that get followed when the user made requests on ```api/v1/users``` </strong>
+stpe1:The ```userRouter``` will execute
+step2:Then it will go into ```user.routes.js``` file cause ```userRoute(router)``` is there 
+step3:Then it'll go to ```"/register"``` route and at this time ```url``` becomes like ```http://localhost:8000/api/v1/users/register``` and then to make ```post``` it'll go to ```registerUser``` 
+step4:and the ```registerUser``` itself a method which written in  ```user.controller.js``` then the registerUser function will execute or run . 
+Hence How this process done. 

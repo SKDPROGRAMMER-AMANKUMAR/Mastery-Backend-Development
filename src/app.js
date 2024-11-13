@@ -16,4 +16,14 @@ app.use(express.urlencoded({
 app.use(express.static("public"))
 app.use(cookieParser(cookieParser()))
 
+//routes import 
+
+import userRouter from "./routes/user.routes.js"
+
+//routes declarations
+
+app.use("/api/v1/users", userRouter)
+// Example URLs for accessing the user routes:
+// http://localhost:8000/api/v1/users/register
+// http://localhost:8000/api/v1/users/login
 export default  app 
