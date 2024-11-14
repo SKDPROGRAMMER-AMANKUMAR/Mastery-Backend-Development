@@ -18,13 +18,14 @@ const registerUser = asyncHandler(
     //return response 
 
     const {fullName, email, password, username} = req.body
+    console.log("This is the all data of req.body",req.body)
     if(
-        [fullName, email, username, password].some((field)=> field?.trim()==="")
+        [fullName, email,  password, username,].some((field)=> field?.trim()==="")
     ){
       throw new ApiError(400,"All fields are required")
     }
 
-    const existedUser = User.find({
+    const existedUser = await User.findOne({
         $or: [{ username }, { email }]
     })
 
@@ -32,10 +33,15 @@ const registerUser = asyncHandler(
         throw new ApiError(400,"User with  email or username already exists")
     }
 
-   const avatarLocalPath =  req.files?.avatar[0]?.path
-    console.log("The req.file is :- ",req.files);  
+   const avatarLocalPath = await req.files?.avatar[0]?.path
+    console.log("The req.file data is :- ",req.files);  
 
-    const coverImageLocalPath = req.files?.coverImage[0]?.path;
+    // const coverImageLocalPath = req.files?.coverImage[0]?.path; //This will casue the error if the "coverImage" which is optional , not get uploaded is the code below instead of using this 
+    let coverImageLocalPath;
+    if(req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0){
+        coverImageLocalPath = req.files.coverImage[0].path;
+    }
+
     console.log("The coverImage localPath is  is :- ",coverImageLocalPath);
     if(!avatarLocalPath ){
         throw new ApiError(400,"Avatar file is required")
@@ -43,6 +49,7 @@ const registerUser = asyncHandler(
 
     const avatar = await uploadOnCloudinary(avatarLocalPath)
     const coverImage = await uploadOnCloudinary(coverImageLocalPath)
+
     if(!avatar){
         throw new ApiError(400,"Failed to upload avatar to cloudinary")
     }
