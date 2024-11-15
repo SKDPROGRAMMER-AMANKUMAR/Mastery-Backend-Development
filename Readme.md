@@ -1386,3 +1386,30 @@ export default router
 1.While sending data we often use ```json``` format via ```raw```
 2.But we cannot send files like ```images``` etc. 
 3.So that's why we use ```form-data``` to perform the task instead of using ```json``` in this case.
+
+## <strong style="color:gold">This is the updated ```.env``` file , cause of some problem while pushing data to the database , we update this file </strong>
+Write this code in ```.env``` file 
+```javascript
+PORT=8000
+MONGODB_URI=mongodb+srv://skdprogrammer143445:MasteryBackend143@cluster0.apu9i.mongodb.net
+# MasteryBackend143
+CORS_ORIGIN=* #this will allow to get data from backend from any of the request , which is not good , but for now it is fine 
+ACCESS_TOKEN_SECRET=7b1fd5e79f3760f67497d6540e1ff04260c00d6fb941068806534e8f17bb91bb
+ACCESS_TOKEN_EXPIRY=1d
+REFRESH_TOKEN_SECRET=64312c7631d36392ea0a6bc9da1381654f900b6db17612066955c9057f981472
+REFRESH_TOKEN_EXPIRY=10d
+CLOUDINARY_CLOUD_NAME=drrqddm39
+CLOUDINARY_API_KEY=641531255918558
+CLOUDINARY_API_SECRET=lEE4h4GwaTvrYOpl8P-ca4dcja4
+
+```
+#### <strong style="color:Red">Things to be noted about Database(Mongodb atlas cloud database)</strong>
+step1: cause we've already set the name of database in our ```constants.js``` file as like this:
+```javascript
+export const DB_NAME = "videotube"
+```
+step2:and we use our ```User``` which made in ```models``` directory as ```user.model.js``` by using ```mongoose``` so only this ```User``` can talk to the database 
+step3:In database , when you click on ```Browse Collection ``` then you can see your data under this:👇👇
+```javascript
+videotube -----> users , //inside users you're data will available , cause we've already named our database as "videotube" inside constants.js file 
+```
