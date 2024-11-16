@@ -2010,3 +2010,23 @@ router.route("/refreshedaccesstoken").post(refreshAccessToken)
 
 export default router
 ```
+
+### Here we've made ```model``` for subscription named as ```subscription.model.js``` 
+Write the code below inside ```subscription.model.js```
+```javascript
+import mongoose,{Schema} from "mongoose";
+
+const subscriptionSchema = new Schema({
+   subscriber:{
+    type:Schema.Types.ObjectId, //one who is subscribing
+    ref:"User",
+   },
+   channel:{
+    type:Schema.Types.ObjectId,//one to whom 'subscriber' is subscribing
+    ref:"User",
+   }
+},
+{timestamps: true})
+
+export const Subscription = mongoose.model("Subscription", subscriptionSchema);
+```
