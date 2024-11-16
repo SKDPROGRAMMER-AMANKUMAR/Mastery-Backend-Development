@@ -2101,12 +2101,21 @@ const registerUser = asyncHandler(
         throw new ApiError(400,"User with  email or username already exists")
     }
 
+   /*// Get the local file path of the uploaded avatar image.
+// This line extracts the file path from the request files object.
+// The `req.files` object is populated with the uploaded files by a middleware such as Multer.
+// The `avatar` field is expected to contain an array of files, and we access the first file in the array using `[0]`.
+// The `path` property of the file object contains the local file path where the file was saved.
+// We use optional chaining (`?.`) to handle cases where the file is not present, to avoid null pointer exceptions.*/
    const avatarLocalPath = await req.files?.avatar[0]?.path
+   
     console.log("The req.file data is :- ",req.files);  
 
     // const coverImageLocalPath = req.files?.coverImage[0]?.path; //This will casue the error if the "coverImage" which is optional , not get uploaded is the code below instead of using this 
-    let coverImageLocalPath;
-    if(req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0){
+    let coverImageLocalPath;/*// Declare a variable to store the local file path of the cover image.*/
+    if(req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0){/*// Check if the `req.files` object exists, contains a property `coverImage`, 
+// and that the property is an array with at least one item.*/
+  /* // If the conditions are true, assign the path of the first image in the `coverImage` array to `coverImageLocalPath`.*/
         coverImageLocalPath = req.files.coverImage[0].path;
     }
 
@@ -2122,6 +2131,14 @@ const registerUser = asyncHandler(
         throw new ApiError(400,"Failed to upload avatar to cloudinary")
     }
 
+  /*// Create a new user in the database using the `User.create` method.
+// Passes the following fields:
+// 1. `fullName` - The user's full name.
+// 2. `avatar` - The URL of the user's avatar, extracted from the `avatar.url` property.
+// 3. `coverImage` - The URL of the user's cover image, or an empty string if `coverImage` is undefined or null.
+// 4. `email` - The user's email address.
+// 5. `password` - The user's hashed password (assumed to be hashed before calling this function).
+// 6. `username` - The user's username, converted to lowercase for consistency.*/
    const user = await  User.create({
         fullName,
         avatar:avatar.url,
@@ -2130,6 +2147,10 @@ const registerUser = asyncHandler(
         password,
         username:username.toLowerCase()
     })    
+
+    /*// Retrieve the created user's details from the database using their unique ID (`user._id`).
+// The `select` method is used to exclude sensitive fields like `password` and `refreshToken` 
+// from the result to ensure these values are not exposed.*/
     const createdUser = await User.findById(user._id).select(
         "-password -refreshToken"
     )
@@ -2138,6 +2159,11 @@ const registerUser = asyncHandler(
         throw new ApiError(500, "Something went wrong while registering the user")
     }
 
+  /*// Send a response to the client with an HTTP status code of 201, indicating successful resource creation.
+// The response includes a JSON object created using the `ApiResponse` utility, which contains:
+// 1. A status code of 200, signifying a successful operation within the application context.
+// 2. `createdUser` - The newly registered user details (excluding sensitive information).
+// 3. A success message, "User registered successfully," to inform the client of the operation's outcome.*/
     return res.status(201).json(
         new ApiResponse(200,createdUser , "User registered successfully")
     )
