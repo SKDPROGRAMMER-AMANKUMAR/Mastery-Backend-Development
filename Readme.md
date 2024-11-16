@@ -1413,3 +1413,318 @@ step3:In database , when you click on ```Browse Collection ``` then you can see 
 ```javascript
 videotube -----> users , //inside users you're data will available , cause we've already named our database as "videotube" inside constants.js file 
 ```
+
+## <strong style="color:gold"> Access Token and Refresh Token use , ```Middleware(verifyJWT)``` , cookies in Backend , and controllers making like ```loginUser``` to login the user , ```logoutUser``` to logout the user and also making a method called ```generateAccessAndRefreshTokens``` which take only ```userId``` to do it's work </strong>
+Write the below code in ```user.controller.js``` file for adding the ```loginUser``` and ```logoutUser``` controllers to your application
+```javascript
+import {asyncHandler} from "../utils/asyncHandler.js"
+import {ApiError} from "../utils/ApiError.js"
+import { User } from "../models/user.model.js"
+import {uploadOnCloudinary} from "../utils/cloudinary.js"
+import {ApiResponse} from "../utils/ApiResponse.js";
+
+const generateAccessAndRefreshTokens = async( userId ) => {
+  try {
+    /*// Use the User model to find a user in the database by their ID.
+// This uses the findById() method to retrieve the user document from the database.*/
+     const user = await User.findById(userId)
+     /*// Generate an access token for the user.
+// This uses the generateAccessToken() method of the user object to create a new access token.
+ user is an object because it's an instance of a class or model that has properties and methods, and we're using those properties and methods to perform actions, such as generating a refresh token.*/
+     const accessToken = user.generateAccessToken()
+     /*// Generate a refresh token for the user.
+// This method generates a new refresh token that can be used to obtain a new access token when the current access token expires.
+// The refresh token is a secure token that is stored on the client-side and is used to authenticate the user and obtain a new access token.*/
+     const refreshToken = user.generateRefreshToken()
+
+     /*// Update the user's refresh token in the database.
+// Assign the newly generated refresh token to the user's refreshToken property.*/
+     user.refreshToken = refreshToken
+     /*// Save the updated user document to the database.
+// The validateBeforeSave option is set to false to bypass validation and ensure the document is saved even if it doesn't meet the validation criteria.*/
+     await user.save({validateBeforeSave :false})
+
+     return {accessToken, refreshToken}
+  } catch (error) {
+    throw new ApiError(500, "Something went wrong while generating refresh ad access token ")
+  }
+
+}
+
+const registerUser = asyncHandler( 
+    async(req,res)=> {
+        /*Algorithm to register the user*/
+    //get user details from frontend
+    //validation -not empty
+    //check if user already exists:username,email
+    //check for images , check for avatar
+    //upload them to cloudinary , avatar
+    //create user object -create entry in db
+    //remove password and refresh token field from response
+    //check for user creation
+    //return response 
+
+    const {fullName, email, password, username} = req.body
+    console.log("This is the all data of req.body",req.body)
+    if(
+        [fullName, email,  password, username,].some((field)=> field?.trim()==="")
+    ){
+      throw new ApiError(400,"All fields are required")
+    }
+
+    const existedUser = await User.findOne({
+        $or: [{ username }, { email }]
+    })
+
+    if(existedUser){
+        throw new ApiError(400,"User with  email or username already exists")
+    }
+
+   const avatarLocalPath = await req.files?.avatar[0]?.path
+    console.log("The req.file data is :- ",req.files);  
+
+    // const coverImageLocalPath = req.files?.coverImage[0]?.path; //This will casue the error if the "coverImage" which is optional , not get uploaded is the code below instead of using this 
+    let coverImageLocalPath;
+    if(req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0){
+        coverImageLocalPath = req.files.coverImage[0].path;
+    }
+
+    console.log("The coverImage localPath is  is :- ",coverImageLocalPath);
+    if(!avatarLocalPath ){
+        throw new ApiError(400,"Avatar file is required")
+    }
+
+    const avatar = await uploadOnCloudinary(avatarLocalPath)
+    const coverImage = await uploadOnCloudinary(coverImageLocalPath)
+
+    if(!avatar){
+        throw new ApiError(400,"Failed to upload avatar to cloudinary")
+    }
+
+   const user = await  User.create({
+        fullName,
+        avatar:avatar.url,
+        coverImage:coverImage?.url || "",
+        email,
+        password,
+        username:username.toLowerCase()
+    })    
+    const createdUser = await User.findById(user._id).select(
+        "-password -refreshToken"
+    )
+
+    if(!createdUser){
+        throw new ApiError(500, "Something went wrong while registering the user")
+    }
+
+    return res.status(201).json(
+        new ApiResponse(200,createdUser , "User registered successfully")
+    )
+})
+
+const loginUser = asyncHandler(async (req,res)=>{
+    //Algorithm to login the user
+    //req body -> data
+    //username or email
+    //fint the user
+    //password check
+    // send access and refresh token to user
+    //send cookie
+
+    const {email, username, password} = req.body
+    console.log("Required information send by user for login :- ", req.body);
+
+    if(!(username || email)){
+        throw new ApiError(400,"Username or email is required")
+    }
+   
+    /*// Use the User model to find a user in the database who matches either the provided username or email.*/
+    const user = await User.findOne({
+        /* // Use the $or operator to search for users who match either the provided username or email.*/
+        $or: [{ username }, { email }]/* // Search for users who have a username that matches the provided username.
+        // Search for users who have an email that matches the provided email.*/
+    })
+
+    if(!user){
+        throw new ApiError(404, "User does not exist")
+    }
+
+    /*// Check if the provided password is valid for the user.
+// This uses the isPasswordCorrect() method of the user object to verify the password.*/
+   const isPasswordValid =  await user.isPasswordCorrect(password)
+
+    if(!isPasswordValid){
+        throw new ApiError(401,"Invalid password")
+    }
+
+    const {accessToken,refreshToken} =  await generateAccessAndRefreshTokens(user._id)
+    
+    /*// Find the logged-in user in the database by their ID.
+// This uses the findById() method to retrieve the user document from the database.*/
+    const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
+    /*// Select only the desired fields from the user document.
+// This uses the select() method to exclude the password and refreshToken fields from the query result. */
+
+/*// Define options for setting HTTP cookies.
+// These options specify the behavior of the cookies, including their security and accessibility.*/
+ const options = {
+    /* // Set the httpOnly flag to true, which means the cookie can only be accessed by the web server, not by client-side JavaScript.*/
+    httpOnly : true,
+    /*// Set the secure flag to true, which means the cookie can only be transmitted over a secure protocol (HTTPS).*/
+    secure:true
+ }
+ console.log("The option for cookies is :- ", options);
+
+ return res
+ .status(200)
+ /*// Set HTTP cookies for the access token and refresh token.
+// These cookies will be sent with every request to the server and can be used to authenticate the user.*/
+ .cookie("accessToken", accessToken,options)/* // Set the access token cookie with the provided token value and options.
+ // The access token is used to authenticate the user for a short period of time.*/
+ .cookie("refreshToken", refreshToken,options)/*// Set the refresh token cookie with the provided token value and options.
+ // The refresh token is used to obtain a new access token when the current one expires.*/
+ .json(
+    new ApiResponse(
+        200,
+        {
+            /*// Create an object containing the logged-in user, access token, and refresh token.
+// This object is used to store user information and authentication tokens.*/
+            user:loggedInUser, // This is the logged-in user object
+            accessToken,// This is the access token used for authentication
+            refreshToken // This is the refresh token used to obtain a new access token
+        },
+        "User logged In Successfully"
+    )
+ )
+})
+
+/*// Define a logout function that handles the logout process for a user.
+// This function is an asynchronous handler that takes in the request and response objects.*/
+const logoutUser = asyncHandler(async (req,res)=>{/* // This function will perform the necessary operations to log out the user,
+    // such as removing the refresh token and updating the user document.*/
+    
+    /*// Update the user document in the database to remove the refresh token.
+// This is done by setting the `refreshToken` field to `undefined`.
+// The `new` option is set to `true` to return the updated document.*/
+  await User.findByIdAndUpdate(
+    req.user._id, // Update the user document with the specified ID
+    {
+        $set:{// Set the `refreshToken` field to `undefined`
+            refreshToken:undefined
+        }
+    },{
+        new:true // Return the updated document
+    }
+  )
+
+  const options = {
+    httpOnly:true,
+    secure:true,
+  }
+
+  return res
+  .status(200)
+  .clearCookie("accessToken",options)
+  .clearCookie("refreshToken",options)
+  .json(new ApiResponse(200,{}, "User logged out successfully"))
+});
+
+export { registerUser,
+         loginUser,
+         logoutUser
+ }
+
+```
+Write this below code in ```auth.middleware.js``` file which present inside ```middlwares``` directory  to make the middleware called ```verifyJWT``` THAT will verify the user 
+```javascript 
+import { ApiError } from "../utils/ApiError.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import jwt from "jsonwebtoken";
+import { User } from "../models/user.model.js";
+
+/*// Export a middleware function named `verifyJWT` that verifies a JSON Web Token (JWT) in the request.
+// This middleware function is used to authenticate the user and authorize access to protected resources.
+// It checks the JWT for validity, expiration, and signature, and extracts the user's information from the token.
+// This middleware function is asynchronous, meaning it returns a promise that resolves when the verification is complete.
+  // The `asyncHandler` function wraps this middleware function in a try-catch block to handle any errors that occur during verification.*/
+export const verifyJWT = asyncHandler(async(req,_,next) => {/* // The `req`, `res`, and `next` arguments are passed to the middleware function:
+    // - `req`: The request object, which contains information about the incoming request.
+    // - `res`: The response object, which is used to send a response back to the client.
+    // - `next`: The next function in the middleware chain, which is called when the verification is complete.*/
+
+try {
+        /*// Retrieve the JWT token from the request, either from the cookies or the Authorization header.
+    // If the token is present in the cookies, use that; otherwise, try to retrieve it from the Authorization header.*/
+        const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer","");
+    
+        if(!token){
+            throw new ApiError(401,"Unauthorized request");
+        }
+    
+        /*// Verify the JWT token using the secret key and extract the decoded payload.
+    // The decoded payload contains the user's information, such as their ID and email. because we've sent the id ,email,fullName etc. while making it in "user.model.js" file under "generateAccessToken" method */
+        const decodedToken = jwt.verify(token,process.env.ACCESS_TOKEN_SECRET)
+    
+        /*// Retrieve the user document from the database using the user ID extracted from the decoded JWT token.
+    // The user document is retrieved using the `findById()` method, which returns a promise that resolves to the user document.
+    // The `select()` method is used to exclude the `password` and `refreshToken` fields from the retrieved document.*/
+        const user = await User.findById(decodedToken?._id).select("-password -refreshToken");
+    
+        if(!user){
+            //TODO:discuss about frontend 
+            throw new ApiError(401,"Invalid Access Token");
+        }
+    
+        /*// Attach the retrieved user document to the request object.
+    // This allows the user's information to be accessed throughout the request-response cycle.*/
+        req.user = user;
+        next();
+} catch (error) {
+    throw new ApiError(401, error?.message || "Invalid Access Token")
+}
+})
+
+/*The verifyJWT method:
+
+Verifies a JSON Web Token (JWT) sent in the request
+Authenticates the user and extracts their information
+Attaches the user's information to the request object (req.user)
+Ensures only authorized users can access protected routes or resources
+It's used to:
+
+Protect routes or resources from unauthorized access
+Authenticate users and extract their information
+Make the user's information available for use in the application
+
+*/
+```
+Write the below code inside ```user.routes.js``` file which present inside ```routes``` directory to add the ```loginUser``` and ```logoutUser``` routes
+```javascript
+import { Router } from "express";
+import { loginUser,registerUser,logoutUser } from "../controllers/user.controller.js"
+import {upload} from "../middlewares/multer.middleware.js"
+import { verifyJWT } from "../middlewares/auth.middleware.js";
+
+const router = Router();
+
+router.route("/register").post(
+    upload.fields([
+      {
+        name:"avatar",
+        maxCount: 1
+      },
+      {
+        name:"coverImage",
+        maxCount: 1
+      }
+    ]),
+    registerUser
+)
+
+router.route("/login").post(loginUser)
+
+//secured routes
+router.route("/logout").post(verifyJWT, logoutUser)
+
+export default router
+```
