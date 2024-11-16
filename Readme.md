@@ -2041,23 +2041,32 @@ import {uploadOnCloudinary} from "../utils/cloudinary.js"
 import {ApiResponse} from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken"
 
-const generateAccessAndRefreshTokens = async( userId ) => {
+/*// Define a function to generate new access and refresh tokens for a user.
+// This function takes a user ID as an argument and returns an object containing the new tokens.
+*/
+const generateAccessAndRefreshTokens = async( userId ) => {/*// This function will generate new access and refresh tokens using a secure token generation algorithm.
+  // The tokens will be unique and time-limited to prevent unauthorized access.*/
   try {
-     const user = await User.findById(userId)
-     const accessToken = user.generateAccessToken()
-     const refreshToken = user.generateRefreshToken()
-     user.refreshToken = refreshToken
-     await user.save({validateBeforeSave :false})
+     const user = await User.findById(userId) // Find the user by ID
+     const accessToken = user.generateAccessToken() // Generate a new access token
+     const refreshToken = user.generateRefreshToken() // Generate a new refresh token
+     user.refreshToken = refreshToken // Update the user document with the new refresh token
+     await user.save({validateBeforeSave :false}) // Save the updated user document without validation
 
-     return {accessToken, refreshToken}
+     return {accessToken, refreshToken} // Return the new access and refresh tokens
   } catch (error) {
     throw new ApiError(500, "Something went wrong while generating refresh ad access token ")
   }
 
 }
 
-const registerUser = asyncHandler( 
-    async(req,res)=> {
+/*// Define a function to handle the registration of a new user.
+// This function is an asynchronous handler that takes in the request and response objects.
+*/
+const registerUser = asyncHandler(
+    async(req,res)=> {/* // This function will perform the necessary operations to register a new user.
+    // It will handle the user's registration data, validate the input, and return a response to the client.*/
+
         /*Algorithm to register the user*/
     //get user details from frontend
     //validation -not empty
@@ -2070,13 +2079,20 @@ const registerUser = asyncHandler(
     //return response 
 
     const {fullName, email, password, username} = req.body
+
     console.log("This is the all data of req.body",req.body)
+
+    /*The code checks if any of the required fields (fullName, email, password, username) are empty or consist only of whitespace. If any field is empty, it throws an error indicating that all fields are required.*/
     if(
         [fullName, email,  password, username,].some((field)=> field?.trim()==="")
     ){
       throw new ApiError(400,"All fields are required")
     }
 
+   /*// The  code is using Mongoose to find a user in the database where either the `username` or
+   // the `email` matches the provided values. It is using the operator to specify that the query
+   // should match documents where either the `username` or the `email` field matches the provided
+   // values. The result is stored in the `existedUser` variable.*/
     const existedUser = await User.findOne({
         $or: [{ username }, { email }]
     })
@@ -2127,7 +2143,11 @@ const registerUser = asyncHandler(
     )
 })
 
-const loginUser = asyncHandler(async (req,res)=>{
+/*// Define a function to handle the login user request.
+// This function is an asynchronous handler that takes in the request and response objects.*/
+const loginUser = asyncHandler(async (req,res)=>{/*// This function will perform the necessary operations to authenticate the user.
+  // It will handle the login credentials, verify the user's identity, and return a response to the client.*/
+
     //Algorithm to login the user
     //req body -> data
     //username or email
@@ -2136,81 +2156,112 @@ const loginUser = asyncHandler(async (req,res)=>{
     // send access and refresh token to user
     //send cookie
 
+  /*// Extract the email, username, and password from the request body.
+// These values are expected to be sent by the client as part of the login request.*/
     const {email, username, password} = req.body
     console.log("Required information send by user for login :- ", req.body);
 
+   /*// Check if the username or email is missing from the request body.
+// If either is missing, throw a 400 error indicating that a username or email is required.*/
     if(!(username || email)){
         throw new ApiError(400,"Username or email is required")
     }
    
-    const user = await User.findOne({
-        $or: [{ username }, { email }]
+    const user = await User.findOne({/*// Find a user in the database that matches either the provided username or email.
+// Use the `$or` operator to search for a user with either the specified username or email.*/
+        $or: [{ username }, { email }] // Search for a user with either the specified username or email
     })
 
     if(!user){
         throw new ApiError(404, "User does not exist")
     }
 
+     /*// Check if the provided password is valid for the user.
+// Use the `isPasswordCorrect` method of the user object to verify the password.*/
    const isPasswordValid =  await user.isPasswordCorrect(password)
 
     if(!isPasswordValid){
         throw new ApiError(401,"Invalid password")
     }
 
+  /*// Generate new access and refresh tokens for the user.
+// Use the `generateAccessAndRefreshTokens` function to create the tokens.*/
     const {accessToken,refreshToken} =  await generateAccessAndRefreshTokens(user._id)
+
+  /*// Retrieve the user document from the database, excluding sensitive fields.
+// Use the `findById` method to find the user by ID, and `select` to exclude the password and refresh token.*/
     const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
 
+ /*// Define options for setting cookies.
+// These options enhance the security of the cookies.*/
  const options = {
-    httpOnly : true,
-    secure:true
+    httpOnly : true, // Set the cookie to be accessible only through HTTP requests
+    secure:true // Set the cookie to be transmitted only over a secure protocol (HTTPS)
  }
+
  console.log("The option for cookies is :- ", options);
 
+/*// Return a response to the client indicating that the user has been logged in successfully.
+// Set the access token and refresh token cookies, and return a JSON response with the user data.*/
  return res
- .status(200)
- .cookie("accessToken", accessToken,options)
- 
- .cookie("refreshToken", refreshToken,options)
+ .status(200) // Set the response status code to 200 (OK)
+ .cookie("accessToken", accessToken,options) // Set the access token cookie
+ .cookie("refreshToken", refreshToken,options)  // Set the refresh token cookie
  
  .json(
     new ApiResponse(
         200,
         {
-            user:loggedInUser, 
-            accessToken,
-            refreshToken 
+            user:loggedInUser, // Include the logged-in user data in the response
+            accessToken, // Include the access token in the response
+            refreshToken  // Include the refresh token in the response
         },
         "User logged In Successfully"
     )
  )
 })
-const logoutUser = asyncHandler(async (req,res)=>{
+/*// Define a function to handle the logout user request.
+// This function is an asynchronous handler that takes in the request and response objects.*/
+const logoutUser = asyncHandler(async (req,res)=>{/* // This function will perform the necessary operations to log out the user.
+  // It will handle the removal of authentication tokens and return a response to the client.*/
 
+/*// Update the user document in the database to remove the refresh token.
+// Use the `findByIdAndUpdate` method to update the user document.*/
   await User.findByIdAndUpdate(
-    req.user._id, 
+    req.user._id, // ID of the user document to update
     {
-        $set:{
-            refreshToken:undefined
+        $set:{// Update operator: set the specified field to the new value
+            refreshToken:undefined // Remove the refresh token by setting it to undefined
         }
     },{
-        new:true 
+        new:true // Options: return the updated document instead of the original document
     }
   )
 
+ /*// Define options for setting cookies.
+// These options enhance the security of the cookies.*/
   const options = {
-    httpOnly:true,
-    secure:true,
+    httpOnly:true, // Set the cookie to be accessible only through HTTP requests
+    secure:true, // Set the cookie to be transmitted only over a secure protocol (HTTPS)
   }
 
+/*// Return a response to the client indicating that the user has been logged out.
+// Clear the access token and refresh token cookies and return a JSON response.*/
   return res
-  .status(200)
-  .clearCookie("accessToken",options)
-  .clearCookie("refreshToken",options)
-  .json(new ApiResponse(200,{}, "User logged out successfully"))
+  .status(200) // Set the response status code to 200 (OK)
+  .clearCookie("accessToken",options) // Clear the access token cookie
+  .clearCookie("refreshToken",options)  // Clear the refresh token cookie
+  .json(new ApiResponse(200,{}, "User logged out successfully"))/* // Status code: 200 OK
+  // Response data: empty object*/
 });
 
+/*// Define a function to handle the refresh access token request.
+// This function is an asynchronous handler that takes in the request and response objects.*/
+const refreshAccessToken = asyncHandler(async (req,res)=>{/* // This function will perform the necessary operations to refresh the access token.
+  // It will handle the refresh token, verify its validity, and return a new access token.*/
 
-const refreshAccessToken = asyncHandler(async (req,res)=>{
+  /*// Retrieve the incoming refresh token from the request.
+// Check both the request cookies and body for the refresh token.*/
     const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
 
     if(!incomingRefreshToken){
@@ -2218,36 +2269,50 @@ const refreshAccessToken = asyncHandler(async (req,res)=>{
     }
 
     try {
+      /*// Verify the incoming refresh token using a JSON Web Token (JWT) library.
+// Use the `jwt.verify` function to decode and verify the token using the secret key.*/
         const decodedToken = jwt.verify(
-            incomingRefreshToken,
-            process.env.REFRESH_TOKEN_SECRET 
+            incomingRefreshToken, // Refresh token to verify
+            process.env.REFRESH_TOKEN_SECRET  // Secret key to verify the token
         )
     
-        const user = await User.findById(decodedToken?._id)
+     /*// Retrieve the user document from the database using the decoded token's user ID.
+// Use the `User.findById` method to find the user document by ID.*/
+        const user = await User.findById(decodedToken?._id)// User ID from the decoded token
     
         if(!user){
             throw new ApiError(401,"Invalid refresh token")
         }
     
+    /*// Verify that the incoming refresh token matches the user's stored refresh token.
+// If the tokens do not match, throw a 401 error indicating that the refresh token has expired or been used.*/
         if(incomingRefreshToken !== user?.refreshToken){
             throw new ApiError(401,"Refresh token has expired or used")
         }
 
+ /* // Define options for setting cookies.
+ // These options enhance the security of the cookies.
+ */
         const options = {
-            httpOnly : true,
-            secure:true 
+            httpOnly : true,// Set the cookie to be accessible only through HTTP requests
+            secure:true // Set the cookie to be transmitted only over a secure protocol (HTTPS)
         }
     
-        const {accessToken,newRefreshToken} = await generateAccessAndRefreshTokens(user._id)
+    /*// Generate new access and refresh tokens for the user.
+// Use the `generateAccessAndRefreshTokens` function to create the tokens.*/
+        const {accessToken,newRefreshToken} = await generateAccessAndRefreshTokens(user._id)// User ID to generate tokens for
     
+    /*// Return a response to the client with a status code of 200 (OK).
+// Include the new access token and refresh token in the response cookies and body.*/
         return res
        .status(200)
-       .cookie("accessToken", accessToken,options)
-       .cookie("refreshToken", newRefreshToken,options)
-       .json(
+       .cookie("accessToken", accessToken,options)// Set the access token cookie with the new access token and options.
+       .cookie("refreshToken", newRefreshToken,options) // Set the refresh token cookie with the new refresh token and options.
+       .json(// Return a JSON response body with the new access token and refresh token.
         new ApiResponse(
             200,
-            {accessToken,refreshToken:newRefreshToken},
+            {accessToken,refreshToken:newRefreshToken}/*// New access token
+            // New refresh token*/,
             "Access token refreshed successfully"
         )
        )
