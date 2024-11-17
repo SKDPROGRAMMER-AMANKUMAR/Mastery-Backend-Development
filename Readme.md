@@ -4185,3 +4185,558 @@ const tweetSchema = new Schema({
 
 export const Tweet = mongoose.model("Tweet", tweetSchema)
 ```
+
+## Here we add rest of the ```controllers``` 
+Write the code inside ```comment.controller.js``` which present inside ```controllers``` directory
+```javascript
+import mongoose from "mongoose"
+import {Comment} from "../models/comment.model.js"
+import {ApiError} from "../utils/ApiError.js"
+import {ApiResponse} from "../utils/ApiResponse.js"
+import {asyncHandler} from "../utils/asyncHandler.js"
+
+const getVideoComments = asyncHandler(async (req, res) => {
+    // TODO: get all comments for a video
+    const {videoId} = req.params
+    const {page = 1, limit = 10} = req.query
+
+})
+
+const addComment = asyncHandler(async (req, res) => {
+    // TODO: add a comment to a video
+})
+
+const updateComment = asyncHandler(async (req, res) => {
+    // TODO: update a comment
+})
+
+const deleteComment = asyncHandler(async (req, res) => {
+    // TODO: delete a comment
+})
+
+export {
+    getVideoComments, 
+    addComment, 
+    updateComment,
+     deleteComment
+    }
+```
+Write the code inside ```dashboard.controller.js``` which present inside ```controllers``` directory
+```javascript
+import mongoose from "mongoose"
+import {Video} from "../models/video.model.js"
+import {Subscription} from "../models/subscription.model.js"
+import {Like} from "../models/like.model.js"
+import {ApiError} from "../utils/ApiError.js"
+import {ApiResponse} from "../utils/ApiResponse.js"
+import {asyncHandler} from "../utils/asyncHandler.js"
+
+const getChannelStats = asyncHandler(async (req, res) => {
+    // TODO: Get the channel stats like total video views, total subscribers, total videos, total likes etc.
+})
+
+const getChannelVideos = asyncHandler(async (req, res) => {
+    // TODO: Get all the videos uploaded by the channel
+})
+
+export {
+    getChannelStats, 
+    getChannelVideos
+    }
+```
+Write the code inside ```healthcheck.controller.js``` which present inside ```controllers``` directory
+```javascript
+import {ApiError} from "../utils/ApiError.js"
+import {ApiResponse} from "../utils/ApiResponse.js"
+import {asyncHandler} from "../utils/asyncHandler.js"
+
+
+const healthcheck = asyncHandler(async (req, res) => {
+    //TODO: build a healthcheck response that simply returns the OK status as json with a message
+})
+
+export {
+    healthcheck
+    }
+    
+```
+Write the code inside ```like.controller.js``` which present inside ```controllers``` directory
+```javascript
+import mongoose, {isValidObjectId} from "mongoose"/*// Importing the `mongoose` package to interact with MongoDB using Mongoose ORM.
+// `mongoose` provides methods for working with MongoDB collections, schemas, and models.
+// Importing the `isValidObjectId` method from `mongoose` to validate whether a given 
+// value is a valid MongoDB ObjectId. This is useful when you need to check if an 
+// identifier is properly formatted before querying the database.*/
+import {Like} from "../models/like.model.js"
+import {ApiError} from "../utils/ApiError.js"
+import {ApiResponse} from "../utils/ApiResponse.js"
+import {asyncHandler} from "../utils/asyncHandler.js"
+
+const toggleVideoLike = asyncHandler(async (req, res) => {
+    const {videoId} = req.params
+    //TODO: toggle like on video
+})
+
+const toggleCommentLike = asyncHandler(async (req, res) => {
+    const {commentId} = req.params
+    //TODO: toggle like on comment
+
+})
+
+const toggleTweetLike = asyncHandler(async (req, res) => {
+    const {tweetId} = req.params
+    //TODO: toggle like on tweet
+}
+)
+
+const getLikedVideos = asyncHandler(async (req, res) => {
+    //TODO: get all liked videos
+})
+
+export {
+    toggleCommentLike,
+    toggleTweetLike,
+    toggleVideoLike,
+    getLikedVideos
+}
+```
+Write the code inside ```playlist.controller.js``` which present inside ```controllers``` directory
+```javascript
+import mongoose, {isValidObjectId} from "mongoose"/*// Importing the `mongoose` package to interact with MongoDB using Mongoose ORM.
+// `mongoose` provides methods for working with MongoDB collections, schemas, and models.
+// Importing the `isValidObjectId` method from `mongoose` to validate whether a given 
+// value is a valid MongoDB ObjectId. This is useful when you need to check if an 
+// identifier is properly formatted before querying the database.*/
+import {Playlist} from "../models/playlist.model.js"
+import {ApiError} from "../utils/ApiError.js"
+import {ApiResponse} from "../utils/ApiResponse.js"
+import {asyncHandler} from "../utils/asyncHandler.js"
+
+
+const createPlaylist = asyncHandler(async (req, res) => {
+    const {name, description} = req.body
+
+    //TODO: create playlist
+})
+
+const getUserPlaylists = asyncHandler(async (req, res) => {
+    const {userId} = req.params
+    //TODO: get user playlists
+})
+
+const getPlaylistById = asyncHandler(async (req, res) => {
+    const {playlistId} = req.params
+    //TODO: get playlist by id
+})
+
+const addVideoToPlaylist = asyncHandler(async (req, res) => {
+    const {playlistId, videoId} = req.params
+})
+
+const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
+    const {playlistId, videoId} = req.params
+    // TODO: remove video from playlist
+
+})
+
+const deletePlaylist = asyncHandler(async (req, res) => {
+    const {playlistId} = req.params
+    // TODO: delete playlist
+})
+
+const updatePlaylist = asyncHandler(async (req, res) => {
+    const {playlistId} = req.params
+    const {name, description} = req.body
+    //TODO: update playlist
+})
+
+export {
+    createPlaylist,
+    getUserPlaylists,
+    getPlaylistById,
+    addVideoToPlaylist,
+    removeVideoFromPlaylist,
+    deletePlaylist,
+    updatePlaylist
+}
+```
+Write the code inside ```subscription.controller.js``` which present inside ```controllers``` directory
+```javascript
+import mongoose, {isValidObjectId} from "mongoose"/*// Importing the `mongoose` package to interact with MongoDB using Mongoose ORM.
+// `mongoose` provides methods for working with MongoDB collections, schemas, and models.
+// Importing the `isValidObjectId` method from `mongoose` to validate whether a given 
+// value is a valid MongoDB ObjectId. This is useful when you need to check if an 
+// identifier is properly formatted before querying the database.*/
+import {User} from "../models/user.model.js"
+import { Subscription } from "../models/subscription.model.js"
+import {ApiError} from "../utils/ApiError.js"
+import {ApiResponse} from "../utils/ApiResponse.js"
+import {asyncHandler} from "../utils/asyncHandler.js"
+
+
+const toggleSubscription = asyncHandler(async (req, res) => {
+    const {channelId} = req.params
+    // TODO: toggle subscription
+})
+
+// controller to return subscriber list of a channel
+const getUserChannelSubscribers = asyncHandler(async (req, res) => {
+    const {channelId} = req.params
+})
+
+// controller to return channel list to which user has subscribed
+const getSubscribedChannels = asyncHandler(async (req, res) => {
+    const { subscriberId } = req.params
+})
+
+export {
+    toggleSubscription,
+    getUserChannelSubscribers,
+    getSubscribedChannels
+}
+```
+Write the code inside ```tweet.controller.js``` which present inside ```controllers``` directory
+```javascript
+import mongoose, { isValidObjectId } from "mongoose"/*// Importing the `mongoose` package to interact with MongoDB using Mongoose ORM.
+// `mongoose` provides methods for working with MongoDB collections, schemas, and models.
+// Importing the `isValidObjectId` method from `mongoose` to validate whether a given 
+// value is a valid MongoDB ObjectId. This is useful when you need to check if an 
+// identifier is properly formatted before querying the database.*/
+import {Tweet} from "../models/tweet.model.js"
+import {User} from "../models/user.model.js"
+import {ApiError} from "../utils/ApiError.js"
+import {ApiResponse} from "../utils/ApiResponse.js"
+import {asyncHandler} from "../utils/asyncHandler.js"
+
+const createTweet = asyncHandler(async (req, res) => {
+    //TODO: create tweet
+})
+
+const getUserTweets = asyncHandler(async (req, res) => {
+    // TODO: get user tweets
+})
+
+const updateTweet = asyncHandler(async (req, res) => {
+    //TODO: update tweet
+})
+
+const deleteTweet = asyncHandler(async (req, res) => {
+    //TODO: delete tweet
+})
+
+export {
+    createTweet,
+    getUserTweets,
+    updateTweet,
+    deleteTweet
+}
+```
+Write the code inside ```video.controller.js``` which present inside ```controllers``` directory
+```javascript
+ import mongoose, {isValidObjectId} from "mongoose"/*// Importing the `mongoose` package to interact with MongoDB using Mongoose ORM.
+// `mongoose` provides methods for working with MongoDB collections, schemas, and models.
+// Importing the `isValidObjectId` method from `mongoose` to validate whether a given 
+// value is a valid MongoDB ObjectId. This is useful when you need to check if an 
+// identifier is properly formatted before querying the database.*/
+import {Video} from "../models/video.model.js"
+import {User} from "../models/user.model.js"
+import {ApiError} from "../utils/ApiError.js"
+import {ApiResponse} from "../utils/ApiResponse.js"
+import {asyncHandler} from "../utils/asyncHandler.js"
+import {uploadOnCloudinary} from "../utils/cloudinary.js"
+
+
+const getAllVideos = asyncHandler(async (req, res) => {
+    const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query
+    //TODO: get all videos based on query, sort, pagination
+})
+
+const publishAVideo = asyncHandler(async (req, res) => {
+    const { title, description} = req.body
+    // TODO: get video, upload to cloudinary, create video
+})
+
+const getVideoById = asyncHandler(async (req, res) => {
+    const { videoId } = req.params
+    //TODO: get video by id
+})
+
+const updateVideo = asyncHandler(async (req, res) => {
+    const { videoId } = req.params
+    //TODO: update video details like title, description, thumbnail
+
+})
+
+const deleteVideo = asyncHandler(async (req, res) => {
+    const { videoId } = req.params
+    //TODO: delete video
+})
+
+const togglePublishStatus = asyncHandler(async (req, res) => {
+    const { videoId } = req.params
+})
+
+export {
+    getAllVideos,
+    publishAVideo,
+    getVideoById,
+    updateVideo,
+    deleteVideo,
+    togglePublishStatus
+}
+```
+### Here we add new more ```routes``` 
+Write the code below in ```comment.routes.js```  which present inside ```routes``` directory
+```javascript
+import { Router } from 'express';
+import {
+    addComment,
+    deleteComment,
+    getVideoComments,
+    updateComment,
+} from "../controllers/comment.controller.js"
+import {verifyJWT} from "../middlewares/auth.middleware.js"
+
+const router = Router();
+
+router.use(verifyJWT); // Apply verifyJWT middleware to all routes in this file
+
+/*// Defining routes for handling video comments using Express router
+// Route to handle operations related to comments for a specific video.
+// GET request to fetch comments for a specific video identified by `videoId`.
+// POST request to add a new comment to the video identified by `videoId`.*/
+router.route("/:videoId")
+.get(getVideoComments) // Fetches all comments for a specific video.
+.post(addComment);// Adds a new comment to a specific video.
+/*// Route to handle operations related to a specific comment identified by `commentId`.
+// DELETE request to remove a specific comment identified by `commentId`.
+// PATCH request to update a specific comment identified by `commentId`.*/
+router.route("/c/:commentId")
+.delete(deleteComment)// Deletes a specific comment.
+.patch(updateComment);// Updates a specific comment.
+
+export default router
+```
+Write the code below in ```dashboard.routes.js```  which present inside ```routes``` directory
+```javascript
+import { Router } from 'express';
+import {
+    getChannelStats,
+    getChannelVideos,
+} from "../controllers/dashboard.controller.js"
+import {verifyJWT} from "../middlewares/auth.middleware.js"
+
+const router = Router();
+
+router.use(verifyJWT); // Apply verifyJWT middleware to all routes in this file
+
+router.route("/stats").get(getChannelStats);
+router.route("/videos").get(getChannelVideos);
+
+export default router
+```
+Write the code below in ```healthcheck.routes.js```  which present inside ```routes``` directory
+```javascript
+import { Router } from 'express';
+import { healthcheck } from "../controllers/healthcheck.controller.js"
+
+const router = Router();
+
+router.route('/').get(healthcheck);
+
+export default router
+```
+Write the code below in ```like.routes.js```  which present inside ```routes``` directory
+```javascript
+import { Router } from 'express';
+import {
+    getLikedVideos,
+    toggleCommentLike,
+    toggleVideoLike,
+    toggleTweetLike,
+} from "../controllers/like.controller.js"
+import {verifyJWT} from "../middlewares/auth.middleware.js"
+
+const router = Router();
+router.use(verifyJWT); // Apply verifyJWT middleware to all routes in this file
+
+/*// Route to handle the toggling of a "like" status for a specific video.
+// POST request to toggle the "like" status of a video identified by `videoId`.
+// The `toggleVideoLike` function will handle the logic for adding/removing a like 
+// based on the current state (liked or not liked) of the video.*/
+router.route("/toggle/v/:videoId").post(toggleVideoLike);// Toggles the like status for a specific video
+router.route("/toggle/c/:commentId").post(toggleCommentLike);
+router.route("/toggle/t/:tweetId").post(toggleTweetLike);
+router.route("/videos").get(getLikedVideos);
+
+export default router
+```
+Write the code below in ```playlist.routes.js```  which present inside ```routes``` directory
+```javascript
+import { Router } from 'express';
+import {
+    addVideoToPlaylist,
+    createPlaylist,
+    deletePlaylist,
+    getPlaylistById,
+    getUserPlaylists,
+    removeVideoFromPlaylist,
+    updatePlaylist,
+} from "../controllers/playlist.controller.js"
+import {verifyJWT} from "../middlewares/auth.middleware.js"
+
+const router = Router();
+
+router.use(verifyJWT); // Apply verifyJWT middleware to all routes in this file
+
+router.route("/").post(createPlaylist)
+
+router
+    .route("/:playlistId")
+    .get(getPlaylistById)
+    .patch(updatePlaylist)
+    .delete(deletePlaylist);
+
+router.route("/add/:videoId/:playlistId").patch(addVideoToPlaylist);
+router.route("/remove/:videoId/:playlistId").patch(removeVideoFromPlaylist);
+
+router.route("/user/:userId").get(getUserPlaylists);
+
+export default router
+```
+Write the code below in ```subscription.routes.js```  which present inside ```routes``` directory
+```javascript
+import { Router } from 'express';
+import {
+    getSubscribedChannels,
+    getUserChannelSubscribers,
+    toggleSubscription,
+} from "../controllers/subscription.controller.js"
+import {verifyJWT} from "../middlewares/auth.middleware.js"
+
+const router = Router();
+router.use(verifyJWT); // Apply verifyJWT middleware to all routes in this file
+
+router
+    .route("/c/:channelId")
+    .get(getSubscribedChannels)
+    .post(toggleSubscription);
+
+router.route("/u/:subscriberId").get(getUserChannelSubscribers);
+
+export default router
+```
+Write the code below in ```tweet.routes.js```  which present inside ```routes``` directory
+```javascript
+import { Router } from 'express';
+import {
+    createTweet,
+    deleteTweet,
+    getUserTweets,
+    updateTweet,
+} from "../controllers/tweet.controller.js"
+import {verifyJWT} from "../middlewares/auth.middleware.js"
+
+const router = Router();
+router.use(verifyJWT); // Apply verifyJWT middleware to all routes in this file
+
+router.route("/").post(createTweet);
+router.route("/user/:userId").get(getUserTweets);
+router.route("/:tweetId").patch(updateTweet).delete(deleteTweet);
+
+export default router
+```
+Write the code below in ```video.routes.js```  which present inside ```routes``` directory
+```javascript
+import { Router } from 'express';
+import {
+    deleteVideo,
+    getAllVideos,
+    getVideoById,
+    publishAVideo,
+    togglePublishStatus,
+    updateVideo,
+} from "../controllers/video.controller.js"
+import {verifyJWT} from "../middlewares/auth.middleware.js"
+import {upload} from "../middlewares/multer.middleware.js"
+
+const router = Router();
+router.use(verifyJWT); // Apply verifyJWT middleware to all routes in this file
+
+router
+    .route("/")
+    .get(getAllVideos)
+    .post(
+        upload.fields([
+            {
+                name: "videoFile",
+                maxCount: 1,
+            },
+            {
+                name: "thumbnail",
+                maxCount: 1,
+            },
+            
+        ]),
+        publishAVideo
+    );
+
+router
+    .route("/:videoId")
+    .get(getVideoById)
+    .delete(deleteVideo)
+    .patch(upload.single("thumbnail"), updateVideo);
+
+router.route("/toggle/publish/:videoId").patch(togglePublishStatus);
+
+export default router
+```
+Write this code in ```app.js``` file 
+```javascript
+import express from 'express';
+import cors from "cors"
+import cookieParser from 'cookie-parser';
+
+const app = express();
+
+app.use(cors({
+    origin:process.env.CORS_ORIGIN,
+    credentials: true
+}))
+app.use(express.json({limit: "16kb"})) 
+app.use(express.urlencoded({
+    extended: true,
+    limit: "16kb" 
+}))
+app.use(express.static("public"))
+app.use(cookieParser(cookieParser()))
+
+//routes import 
+
+import userRouter from "./routes/user.routes.js"
+import healthcheckRouter from "./routes/healthcheck.routes.js"
+import tweetRouter from "./routes/tweet.routes.js"
+import subscriptionRouter from "./routes/subscription.routes.js"
+import videoRouter from "./routes/video.routes.js"
+import commentRouter from "./routes/comment.routes.js"
+import likeRouter from "./routes/like.routes.js"
+import playlistRouter from "./routes/playlist.routes.js"
+import dashboardRouter from "./routes/dashboard.routes.js"
+
+
+//routes declarations
+app.use("/api/v1/healthcheck", healthcheckRouter)
+
+app.use("/api/v1/users", userRouter)
+// Example URLs for accessing the user routes:
+// http://localhost:8000/api/v1/users/register
+// http://localhost:8000/api/v1/users/login
+app.use("/api/v1/tweets", tweetRouter)
+app.use("/api/v1/subscriptions", subscriptionRouter)
+app.use("/api/v1/videos", videoRouter)
+app.use("/api/v1/comments", commentRouter)
+app.use("/api/v1/likes", likeRouter)
+app.use("/api/v1/playlist", playlistRouter)
+app.use("/api/v1/dashboard", dashboardRouter)
+export default  app 
+```
