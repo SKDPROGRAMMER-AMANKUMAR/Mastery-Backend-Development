@@ -4073,3 +4073,115 @@ export {
 };
 
 ```
+
+## <strong style="color:blue">Here we add rest of the models like ```comment.model.js```, ```like.model.js```, ```playlist.model.js``` , ```tweet.model.js```</strong>
+Write the code given below in ```comment.model.js``` file which present in ```models``` directory
+```javascript
+import mongoose ,{Schema} from "mongoose"
+import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2";/*// Importing the `mongoose-aggregate-paginate-v2` package, which provides pagination 
+// functionality for MongoDB aggregation queries in Mongoose. This package allows 
+// you to paginate the results of aggregation operations, making it easier to handle 
+// large datasets by splitting the results into smaller, more manageable chunks.*/
+
+const commentSchema = new Schema(
+    {
+      content:{
+        type:String,
+        required:true
+      },
+      video:{
+        type:Schema.Types.ObjectId,
+        ref:"Video"
+      },
+      owner:{
+        type:Schema.Types.ObjectId,
+        ref:"User"
+      }
+    },
+    { timestamps: true }
+)
+
+/*// The `mongooseAggregatePaginate` plugin is being applied to the `commentSchema`.
+// This plugin enhances the schema by adding the ability to paginate results 
+// for aggregation queries. When using aggregation methods like `$match`, `$group`, etc.,
+// you can now paginate the results (i.e., divide them into pages) in a more efficient way.
+// This is especially useful when dealing with large datasets where you don't want to 
+// load all results at once, but instead, fetch them in smaller, manageable chunks.*/
+commentSchema.plugin(mongooseAggregatePaginate)
+
+export const Comment = mongoose.model("Comment", commentSchema);
+```
+Write the code given below in ```like.model.js``` file which present in ```models``` directory
+```javascript
+import mongoose,{Schema} from "mongoose";
+
+const likeSchema = new Schema({
+    video:{
+        type:Schema.Types.ObjectId,
+        ref:"Video"
+    },
+    comment:{
+        type:Schema.Types.ObjectId,
+        ref:"Comment"
+    },
+    tweet:{
+        type:Schema.Types.ObjectId,
+        ref:"Tweet"
+    },
+    likedBy:{
+        type:Schema.Types.ObjectId,
+        ref:"User"
+    }
+},{timeseries:true});
+
+export const Like = mongoose.model("Like", likeSchema);
+```
+Write the code given below in ```playlist.model.js``` file which present in ```models``` directory
+```javascript
+import mongoose, { Schema } from "mongoose";
+
+const playlistSchema = new Schema(
+  {
+    name: {
+      type: String,
+      required: [true, "Name is Required"],
+    },
+    description: {
+      type: String,
+      required: true,
+    },
+    videos: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Video",
+      },
+    ],
+    owner:{
+        type: Schema.Types.ObjectId,
+        ref: "User",
+    }
+  },
+  { timeseries: true }
+);
+
+export const Playlist = mongoose.model("Playlist", playlistSchema);
+
+```
+Write the code given below in ```tweet.model.js``` file which present in ```models``` directory
+```javascript
+import mongoose,{Schema} from "mongoose";
+
+const tweetSchema = new Schema({
+   content: {
+    type:String,
+    required:true
+   },
+   owner:{
+    type: Schema.Types.ObjectId,
+    ref:"User",
+    required:true
+   }
+},{timestamps:true,})
+
+export const Tweet = mongoose.model("Tweet", tweetSchema)
+```
