@@ -411,6 +411,71 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
 
 });
 
+const getWatchHistory = asyncHandler(async(req,res)=>{
+   //Note: by using "req.user._id" the mongodb provide a string , behind the scene the mongoose will extract the id(implicitily ) 
+   //Mongoose didn't interfere in case of aggregation pipeline it'll go as it is to MongoDB atlas
+
+   const user = await User.aggregate([
+
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(req.user._id),
+      }
+    },
+
+    {
+      $lookup: {
+        from: "videos",
+        localField: "watchHistory", 
+        foreignField: "_id", 
+        as: "watchHistory",
+        
+        pipeline: [
+        
+          {
+            $lookup: {
+              from: "users", 
+              localField: "owner",
+              foreignField: "_id",
+              as: "owner", 
+              
+              pipeline: [
+                {
+                  $project: {
+                    fullName: 1,
+                    username: 1, 
+                    avatar: 1 
+                  }
+                }
+              ]
+            }
+          },
+          {
+            $addFields:{
+              owner: {
+                $first: "$owner"
+              }
+            }
+          }
+        ]
+      }
+    }
+   ])
+
+   console.log("This is the user that form by aggregation pipeline from getWatchHistory:-",user);
+   
+
+   return res
+   .status(200)
+   .json(
+    new  ApiResponse(
+      200,
+      user[0].watchHistory, 
+      " Watch history fetched successfully "
+    )
+   )
+})
+
 export {
   registerUser,
   loginUser,
@@ -422,4 +487,5 @@ export {
   updateUserAvatar,
   updateUserCoverImage,
   getUserChannelProfile,
+  getWatchHistory
 };
