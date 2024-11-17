@@ -4,6 +4,7 @@ import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
@@ -255,7 +256,11 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 const getCurrentUser = asyncHandler(async (req, res) => {
   return res
     .status(200)
-    .json(200, req.user, "current usr fetched successfully");
+    .json(new ApiResponse(
+      200,
+      req.user,
+      "current user fetched successfully"
+    ))
 });
 
 const updateAccountDetails = asyncHandler(async (req, res) => {
@@ -270,7 +275,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Full name and email are required");
   }
 
-  const user = User.findByIdAndUpdate(
+  const user = await User.findByIdAndUpdate(
     req.user._id,
     {
       $set: {
@@ -293,7 +298,7 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Avatar file  is required");
   }
 
-  const avatar = uploadOnCloudinary(avatarLocalPath);
+  const avatar = await uploadOnCloudinary(avatarLocalPath);
 
   if (!avatar.url) {
     throw new ApiError(400, "Failed to upload avatar to cloudinary");
@@ -317,7 +322,7 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
     throw new ApiError(400, "coverImage file  is required");
   }
 
-  const coverImage = uploadOnCloudinary(coverImageLocalPath);
+  const coverImage = await uploadOnCloudinary(coverImageLocalPath);
 
   if (!coverImage.url) {
     throw new ApiError(400, "Failed to upload coverImage to cloudinary");
@@ -377,7 +382,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
         },
         isSubscribed: {
           $cond: {
-            if: { $in: [req.user?._id, "$subscribers.subscriber"] },
+            if: { $in: [req.user?._id, "$subscribers.subscriber"]},
             then: true, 
             else: false,
           },
